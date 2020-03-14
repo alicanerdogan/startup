@@ -219,6 +219,10 @@ output "name" {
   value = var.name
 }
 
+output "app_name" {
+  value = var.app_name
+}
+
 output "private_ip" {
   value = aws_instance.server.private_ip
 }

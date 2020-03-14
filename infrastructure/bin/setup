@@ -106,11 +106,36 @@ cd $BASEDIR
 (cd "${stageCDNResourceDir}" && terraform init && terraform apply -auto-approve)
 (cd "${stageDBResourceDir}" && terraform init && terraform apply -var "db_password=$DB_PASSWORD" -var "db_username=$DB_USERNAME" -auto-approve)
 (cd "${stageServerResourceDir}" && terraform init && terraform apply -var "public_ssh_key=$PUBLIC_SSH_KEY" -auto-approve)
-
-export DB_ADDRESS=$(cd "${stageDBResourceDir}" && terraform output db_address)`;
+`;
 
   const stageBuildScriptPath = path.join(binRootDir, `build_${stageName}`);
   fs.writeFileSync(stageBuildScriptPath, buildScriptTemplate, { mode: 0o764 });
+}
+
+function scaffoldServerDeployScript(stageName) {
+  const deployScriptTemplate = `#!/bin/bash
+BASEDIR=$(dirname "$0")
+cd $BASEDIR
+
+BUILD_REVISION=$(git rev-parse --short HEAD)
+BUILD_FILE="build_\${BUILD_REVISION}.zip"
+CODEDEPLOY_APP_NAME=$(cd ../env/${stageName}/server && terraform output app_name)
+DEPLOYMENT_BUCKET_NAME=$(cd ../env/${stageName}/server && terraform output deployment_bucket)
+BUILD_FILE_S3_KEY="revisions/$BUILD_FILE"
+BUILD_FILE_S3_PATH="s3://$DEPLOYMENT_BUCKET_NAME/$BUILD_FILE_S3_KEY"
+
+cd "../../server"
+
+zip -q -r $BUILD_FILE . -x './.git/*' -x './node_modules/*'
+aws s3 cp $BUILD_FILE $BUILD_FILE_S3_PATH
+aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_staging --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}"
+`;
+
+  const binRootDir = path.join(scriptPath, "..");
+  const stageDeployScriptPath = path.join(binRootDir, `deploy_${stageName}`);
+  fs.writeFileSync(stageDeployScriptPath, deployScriptTemplate, {
+    mode: 0o764
+  });
 }
 
 (async function() {
@@ -124,6 +149,7 @@ export DB_ADDRESS=$(cd "${stageDBResourceDir}" && terraform output db_address)`;
 
     updateGlobalTerraformFiles(appName);
     scaffoldBuildScript(stageName);
+    scaffoldServerDeployScript(stageName);
     scaffoldStageEnvironmentFiles(appName, stageName);
   } catch (error) {
     console.error({ error });

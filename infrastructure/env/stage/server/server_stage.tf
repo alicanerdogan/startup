@@ -40,6 +40,10 @@ output "name" {
   value = module.server.name
 }
 
+output "app_name" {
+  value = module.server.app_name
+}
+
 output "instance_id" {
   value = module.server.instance_id
 }

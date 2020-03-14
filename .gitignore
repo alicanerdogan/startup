@@ -115,3 +115,4 @@ secret.json
 *.pem
 *.pub
 ssh_key
+build_*.zip
