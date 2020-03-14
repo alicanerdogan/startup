@@ -1,0 +1,27 @@
+# will be moved into root directory
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/nails
+hooks:
+  AfterInstall:
+    - location: bin/aws/changePermissions.sh
+      timeout: 300
+      runas: root
+    - location: bin/aws/installPackages.sh
+      timeout: 300
+      runas: root
+    - location: bin/aws/buildBundle.sh
+      timeout: 300
+      runas: root
+    - location: bin/aws/migrateDB.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: bin/aws/stopExistingProcess.sh
+      timeout: 300
+      runas: root
+    - location: bin/aws/applicationStart.sh
+      timeout: 300
+      runas: root

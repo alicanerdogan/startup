@@ -1,0 +1,47 @@
+{
+  "name": "nails",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "@types/body-parser": "^1.19.0",
+    "@types/express": "^4.17.2",
+    "@types/jest": "^25.1.4",
+    "@types/jsonwebtoken": "^8.3.8",
+    "@types/node": "^13.9.0",
+    "@types/supertest": "^2.0.8",
+    "@typescript-eslint/eslint-plugin": "^2.22.0",
+    "@typescript-eslint/parser": "^2.22.0",
+    "eslint": "^6.8.0",
+    "jest": "^25.1.0",
+    "nodemon": "^2.0.2",
+    "prettier": "^1.19.1",
+    "supertest": "^4.0.2",
+    "ts-jest": "^25.2.1",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "bcrypt": "^4.0.1",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.20.11",
+    "knex-db-manager": "^0.5.0",
+    "pg": "^7.18.2",
+    "rate-limiter-flexible": "^2.0.0"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production tsc",
+    "start": "nodemon --exec ts-node src/index.ts",
+    "format": "prettier --write \"src/**/*.{ts*,js*}\"",
+    "lint": "eslint \"src/**/*.{ts*,js*}\" -c .eslintrc.js",
+    "migration:new": "yarn ts-node ./node_modules/knex/bin/cli.js migrate:make --knexfile ./src/dbConfig.js -x ts",
+    "migration:list": "ts-node ./node_modules/knex/bin/cli.js migrate:list --knexfile ./src/dbConfig.js",
+    "migrate": "ts-node ./node_modules/knex/bin/cli.js migrate:latest --knexfile ./src/dbConfig.js",
+    "rollback": "ts-node ./node_modules/knex/bin/cli.js migrate:rollback --knexfile ./src/dbConfig.js",
+    "test": "jest"
+  }
+}
