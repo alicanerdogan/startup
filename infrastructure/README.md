@@ -4,4 +4,5 @@
 
 1. Execute `./bin/setup` and set app name and stage name.
 2. Execute `./bin/setup_terraform` and set up terraform backend
-3. Execute generated with some env vars. e.g: `$DB_PASSWORD=password $DB_USERNAME=username $PUBLIC_SSH_KEY=$(<./bin/ssh_key) ./bin/build_STAGENAME` to set up infrastructure
+3. OPTIONAL: Execute `./bin/ssh_key_generator` and create ssh keys to connect ec2 instance
+4. Execute generated with some env vars. e.g: `DB_PASSWORD="password" DB_USERNAME="username" PUBLIC_SSH_KEY="$(<./bin/ssh_key.pub)" ./bin/build_STAGENAME` to set up infrastructure
