@@ -78,7 +78,7 @@ resource "aws_db_instance" "db" {
   skip_final_snapshot    = true
   vpc_security_group_ids = data.terraform_remote_state.network.outputs.vpc_db_security_group_ids
   db_subnet_group_name   = data.terraform_remote_state.network.outputs.private_db_subnet_group_id
-  db_instance_port       = local.db_port
+  port                   = local.db_port
 }
 
 output "db_name" {
