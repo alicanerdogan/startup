@@ -2,24 +2,24 @@ terraform {
   required_version = ">= 0.12.0"
 
   backend "s3" {
-    bucket = "ae-firestarter-demo-terraform-state-store"
-    key    = "staging/server/terraform.tfstate"
+    bucket = "[#_APP_NAME_#]-terraform-state-store"
+    key    = "[#_STAGE_NAME_#]/server/terraform.tfstate"
     region = "eu-central-1"
 
-    dynamodb_table = "ae-firestarter-demo-terraform-state-locks"
+    dynamodb_table = "[#_APP_NAME_#]-terraform-state-locks"
     encrypt        = true
   }
 }
 
 module "server" {
   source      = "../../../modules/server"
-  environment = "staging"
+  environment = "[#_STAGE_NAME_#]"
 
-  name                 = "server-staging"
-  app_name             = "ae-firestarter-demo-staging"
+  name                 = "server-[#_STAGE_NAME_#]"
+  app_name             = "[#_APP_NAME_#]-[#_STAGE_NAME_#]"
   key_pair_filepath    = "${path.module}/server.pem"
-  network_state_bucket = "ae-firestarter-demo-terraform-state-store"
-  network_state_key    = "staging/network/terraform.tfstate"
+  network_state_bucket = "[#_APP_NAME_#]-terraform-state-store"
+  network_state_key    = "[#_STAGE_NAME_#]/network/terraform.tfstate"
 }
 
 output "server_private_ip" {

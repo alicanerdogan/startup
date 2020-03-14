@@ -20,9 +20,9 @@ const production = {
   ...baseConfig,
   connection: {
     ...baseConfig.connection,
-    database: "dbstaging",
+    database: "db[#_STAGE_NAME_#]",
     port: 5432,
-    host: "dbstaging.clzm35vzwxtv.eu-central-1.rds.amazonaws.com",
+    host: "db[#_STAGE_NAME_#].clzm35vzwxtv.eu-central-1.rds.amazonaws.com",
     user: "tinfra",
     password: "tinfratinfra"
   }

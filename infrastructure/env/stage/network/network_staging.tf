@@ -2,18 +2,18 @@ terraform {
   required_version = ">= 0.12.0"
 
   backend "s3" {
-    bucket = "ae-firestarter-demo-terraform-state-store"
-    key    = "staging/network/terraform.tfstate"
+    bucket = "[#_APP_NAME_#]-terraform-state-store"
+    key    = "[#_STAGE_NAME_#]/network/terraform.tfstate"
     region = "eu-central-1"
 
-    dynamodb_table = "ae-firestarter-demo-terraform-state-locks"
+    dynamodb_table = "[#_APP_NAME_#]-terraform-state-locks"
     encrypt        = true
   }
 }
 
 module "network" {
   source      = "../../../modules/network"
-  environment = "staging"
+  environment = "[#_STAGE_NAME_#]"
 }
 
 output "public_subnet_id" {

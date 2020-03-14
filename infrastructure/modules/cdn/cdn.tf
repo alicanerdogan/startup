@@ -13,7 +13,7 @@ locals {
 }
 
 resource "aws_s3_bucket" "s3" {
-  bucket = "ae-firestarter-s3-bucket-${var.environment}"
+  bucket = "[#_APP_NAME_#]-s3-bucket-${var.environment}"
   acl    = "public-read"
 
   # Prevent deletion of this S3 bucket

@@ -2,11 +2,11 @@ terraform {
   required_version = ">= 0.12.0"
 
   backend "s3" {
-    bucket = "ae-firestarter-demo-terraform-state-store"
-    key    = "staging/db/terraform.tfstate"
+    bucket = "[#_APP_NAME_#]-terraform-state-store"
+    key    = "[#_STAGE_NAME_#]/db/terraform.tfstate"
     region = "eu-central-1"
 
-    dynamodb_table = "ae-firestarter-demo-terraform-state-locks"
+    dynamodb_table = "[#_APP_NAME_#]-terraform-state-locks"
     encrypt        = true
   }
 }
@@ -21,12 +21,12 @@ variable "db_password" {
 
 module "db" {
   source               = "../../../modules/db"
-  environment          = "staging"
-  network_state_bucket = "ae-firestarter-demo-terraform-state-store"
-  network_state_key    = "staging/network/terraform.tfstate"
+  environment          = "[#_STAGE_NAME_#]"
+  network_state_bucket = "[#_APP_NAME_#]-terraform-state-store"
+  network_state_key    = "[#_STAGE_NAME_#]/network/terraform.tfstate"
 
-  db_name           = "dbstaging"
-  identifier        = "dbstaging"
+  db_name           = "db[#_STAGE_NAME_#]"
+  identifier        = "db[#_STAGE_NAME_#]"
   apply_immediately = true
   username          = var.db_username
   password          = var.db_password

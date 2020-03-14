@@ -2,18 +2,18 @@ terraform {
   required_version = ">= 0.12.0"
 
   backend "s3" {
-    bucket = "ae-firestarter-demo-terraform-state-store"
-    key    = "staging/cdn/terraform.tfstate"
+    bucket = "[#_APP_NAME_#]-terraform-state-store"
+    key    = "[#_STAGE_NAME_#]/cdn/terraform.tfstate"
     region = "eu-central-1"
 
-    dynamodb_table = "ae-firestarter-demo-terraform-state-locks"
+    dynamodb_table = "[#_APP_NAME_#]-terraform-state-locks"
     encrypt        = true
   }
 }
 
 module "cdn" {
   source      = "../../../modules/cdn"
-  environment = "staging"
+  environment = "[#_STAGE_NAME_#]"
 }
 
 output "s3_arn" {

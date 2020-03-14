@@ -1,0 +1,89 @@
+#!/usr/bin/node
+
+const readline = require("readline");
+const fs = require("fs");
+const path = require("path");
+const util = require("util");
+const { execSync } = require("child_process");
+
+const promisifyRL = fn => {
+  return (...args) =>
+    new Promise(resolve => fn(...args, result => resolve(result)));
+};
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const askQuestion = promisifyRL(rl.question.bind(rl));
+function copyRecursiveSync(src, dest) {
+  const exists = fs.existsSync(src);
+  const stats = exists && fs.statSync(src);
+  const isDirectory = exists && stats.isDirectory();
+  if (!isDirectory) {
+    fs.copyFileSync(src, dest);
+    return;
+  }
+  fs.mkdirSync(dest, { recursive: true });
+  fs.readdirSync(src).forEach(function(childItemName) {
+    copyRecursiveSync(
+      path.join(src, childItemName),
+      path.join(dest, childItemName)
+    );
+  });
+}
+const APP_NAME_PLACEHOLDER = "[#_APP_NAME_#]";
+const STAGE_NAME_PLACEHOLDER = "[#_STAGE_NAME_#]";
+
+const [, scriptPath] = process.argv;
+const rootDir = path.join(scriptPath, "..", "..");
+const stageRootDir = path.join(rootDir, "env");
+const templateStageDir = path.join(stageRootDir, "stage");
+const globalDir = path.join(rootDir, "global");
+
+function getTargetStageDir(stageName) {
+  return path.join(stageRootDir, stageName);
+}
+
+function scaffoldStageEnvironmentFiles(appName, stageName) {
+  const targetStageDir = getTargetStageDir(stageName);
+  copyRecursiveSync(templateStageDir, targetStageDir);
+  const resp = execSync(`find ${targetStageDir} -type f`);
+  const tfFiles = resp
+    .toString()
+    .trim()
+    .split("\n");
+  for (const tfFile of tfFiles) {
+    execSync(`sed -i 's/\\[#_APP_NAME_#\\]/${appName}/g' ${tfFile}`);
+    execSync(`sed -i 's/\\[#_STAGE_NAME_#\\]/${stageName}/g' ${tfFile}`);
+  }
+}
+
+function updateGlobalTerraformFiles(appName) {
+  const resp = execSync(`find ${globalDir} -type f`);
+  const tfFiles = resp
+    .toString()
+    .trim()
+    .split("\n");
+  for (const tfFile of tfFiles) {
+    execSync(`sed -i 's/\\[#_APP_NAME_#\\]/${appName}/g' ${tfFile}`);
+  }
+}
+
+(async function() {
+  try {
+    const appName = await askQuestion(
+      "What is the name of your application?\n"
+    );
+    const stageName = await askQuestion(
+      "What is the name of your stage environment? e.g: dev, staging, production\n"
+    );
+
+    updateGlobalTerraformFiles(appName);
+    scaffoldStageEnvironmentFiles(appName, stageName);
+  } catch (error) {
+    console.error({ error });
+  }
+  rl.close();
+})();
