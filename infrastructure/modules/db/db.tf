@@ -44,6 +44,9 @@ variable "network_state_key" {
   type        = string
 }
 
+locals {
+  db_port = 5432
+}
 
 provider "aws" {
   region  = "eu-central-1"
@@ -75,6 +78,15 @@ resource "aws_db_instance" "db" {
   skip_final_snapshot    = true
   vpc_security_group_ids = data.terraform_remote_state.network.outputs.vpc_db_security_group_ids
   db_subnet_group_name   = data.terraform_remote_state.network.outputs.private_db_subnet_group_id
+  db_instance_port       = local.db_port
+}
+
+output "db_name" {
+  value = var.db_name
+}
+
+output "db_port" {
+  value = local.db_port
 }
 
 output "db_address" {

@@ -35,3 +35,8 @@ output "private_db_subnet_group_id" {
   value       = module.network.private_db_subnet_group_id
   description = "The private db subnet id"
 }
+
+output "server_port" {
+  value       = module.network.server_port
+  description = "The public server port"
+}

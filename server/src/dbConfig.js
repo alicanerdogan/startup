@@ -16,15 +16,21 @@ const baseConfig = {
 };
 
 const development = baseConfig;
+
+let productionConfig = {};
+if (process.env.NODE_ENV === "production") {
+  productionConfig = require("./config.prod.json");
+}
+
 const production = {
   ...baseConfig,
   connection: {
     ...baseConfig.connection,
-    database: "db[#_STAGE_NAME_#]",
-    port: 5432,
-    host: "db[#_STAGE_NAME_#].clzm35vzwxtv.eu-central-1.rds.amazonaws.com",
-    user: "tinfra",
-    password: "tinfratinfra"
+    database: productionConfig.db,
+    port: productionConfig.db_port,
+    host: productionConfig.db_address,
+    user: productionConfig.db_username,
+    password: productionConfig.db_password
   }
 };
 const test = {

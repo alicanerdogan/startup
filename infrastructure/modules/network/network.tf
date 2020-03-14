@@ -209,3 +209,8 @@ output "private_db_subnet_group_id" {
   value       = aws_db_subnet_group.private_db_subnet_group.id
   description = "The public subnet id"
 }
+
+output "server_port" {
+  value       = 80
+  description = "The public server port"
+}

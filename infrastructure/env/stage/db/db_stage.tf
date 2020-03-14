@@ -32,6 +32,14 @@ module "db" {
   password          = var.db_password
 }
 
+output "db_name" {
+  value = module.db.db_name
+}
+
+output "db_port" {
+  value = module.db.db_port
+}
+
 output "db_address" {
   value       = module.db.db_address
   description = "db address"

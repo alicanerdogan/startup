@@ -106,6 +106,22 @@ cd $BASEDIR
 (cd "${stageCDNResourceDir}" && terraform init && terraform apply -auto-approve)
 (cd "${stageDBResourceDir}" && terraform init && terraform apply -var "db_password=$DB_PASSWORD" -var "db_username=$DB_USERNAME" -auto-approve)
 (cd "${stageServerResourceDir}" && terraform init && terraform apply -var "public_ssh_key=$PUBLIC_SSH_KEY" -auto-approve)
+
+PORT=$(cd "${stageNetworkResourceDir}" && terraform output server_port)
+DB=$(cd "${stageDBResourceDir}" && terraform output db_name)
+DB_PORT=$(cd "${stageDBResourceDir}" && terraform output db_port)
+DB_ADDRESS=$(cd "${stageDBResourceDir}" && terraform output db_address)
+
+cd "../../server"
+
+echo "{
+  \\"port\\": $PORT,
+  \\"db\\": \\"$DB\\",
+  \\"db_port\\": $DB_PORT,
+  \\"db_address\\": \\"$DB_ADDRESS\\",
+  \\"db_username\\": \\"$DB_USERNAME\\",
+  \\"db_password\\": \\"$DB_PASSWORD\\"
+}" > src/config.prod.json
 `;
 
   const stageBuildScriptPath = path.join(binRootDir, `build_${stageName}`);
@@ -123,8 +139,6 @@ CODEDEPLOY_APP_NAME=$(cd ../env/${stageName}/server && terraform output app_name
 DEPLOYMENT_BUCKET_NAME=$(cd ../env/${stageName}/server && terraform output deployment_bucket)
 BUILD_FILE_S3_KEY="revisions/$BUILD_FILE"
 BUILD_FILE_S3_PATH="s3://$DEPLOYMENT_BUCKET_NAME/$BUILD_FILE_S3_KEY"
-
-cd "../../server"
 
 zip -q -r $BUILD_FILE . -x './.git/*' -x './node_modules/*'
 aws s3 cp $BUILD_FILE $BUILD_FILE_S3_PATH

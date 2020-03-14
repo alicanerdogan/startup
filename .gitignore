@@ -116,3 +116,4 @@ secret.json
 *.pub
 ssh_key
 build_*.zip
+config.prod.json

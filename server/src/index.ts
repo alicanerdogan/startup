@@ -3,7 +3,13 @@ import bodyParser from "body-parser";
 import { apiRouter } from "./router/api";
 
 export const app = express();
-const port = 80;
+let config = {
+  port: 3000
+};
+if (process.env.NODE_ENV === "production") {
+  config = require("./config.prod.json");
+}
+const port = config.port;
 
 app.use(bodyParser.json());
 app.use("/api", apiRouter);
