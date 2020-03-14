@@ -35,7 +35,7 @@ variable "name" {
   type = string
 }
 
-variable "key_pair_filepath" {
+variable "public_ssh_key" {
   type = string
 }
 
@@ -57,7 +57,7 @@ variable "network_state_key" {
 
 resource "aws_key_pair" "server_key_pair" {
   key_name   = "server_key_pair_${var.environment}"
-  public_key = file(var.key_pair_filepath)
+  public_key = var.public_ssh_key
 }
 
 data "terraform_remote_state" "network" {

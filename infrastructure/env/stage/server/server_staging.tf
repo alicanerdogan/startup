@@ -11,13 +11,18 @@ terraform {
   }
 }
 
+variable "public_ssh_key" {
+  type        = string
+  description = "Public ssh key to access server with ssh key"
+}
+
 module "server" {
   source      = "../../../modules/server"
   environment = "[#_STAGE_NAME_#]"
 
   name                 = "server-[#_STAGE_NAME_#]"
   app_name             = "[#_APP_NAME_#]-[#_STAGE_NAME_#]"
-  key_pair_filepath    = "${path.module}/server.pem"
+  public_ssh_key       = var.public_ssh_key
   network_state_bucket = "[#_APP_NAME_#]-terraform-state-store"
   network_state_key    = "[#_STAGE_NAME_#]/network/terraform.tfstate"
 }
