@@ -3,6 +3,11 @@ variable "environment" {
   type        = string
 }
 
+variable "app_name" {
+  description = "App name"
+  type        = string
+}
+
 provider "aws" {
   region  = "eu-central-1"
   version = ">= 2.52.0"
@@ -13,7 +18,7 @@ locals {
 }
 
 resource "aws_s3_bucket" "s3" {
-  bucket = "[#_APP_NAME_#]-s3-bucket-${var.environment}"
+  bucket = "${var.app_name}-s3-bucket-${var.environment}"
   acl    = "public-read"
 
   # Prevent deletion of this S3 bucket

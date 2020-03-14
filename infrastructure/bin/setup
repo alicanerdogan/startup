@@ -17,19 +17,21 @@ const rl = readline.createInterface({
 });
 
 const askQuestion = promisifyRL(rl.question.bind(rl));
-function copyRecursiveSync(src, dest) {
+
+function copyRecursiveSync(src, dest, replaceFilename = (_src, dest) => dest) {
   const exists = fs.existsSync(src);
   const stats = exists && fs.statSync(src);
   const isDirectory = exists && stats.isDirectory();
   if (!isDirectory) {
-    fs.copyFileSync(src, dest);
+    fs.copyFileSync(src, replaceFilename(src, dest));
     return;
   }
-  fs.mkdirSync(dest, { recursive: true });
+  fs.mkdirSync(replaceFilename(src, dest), { recursive: true });
   fs.readdirSync(src).forEach(function(childItemName) {
     copyRecursiveSync(
       path.join(src, childItemName),
-      path.join(dest, childItemName)
+      path.join(dest, childItemName),
+      replaceFilename
     );
   });
 }
@@ -48,7 +50,12 @@ function getTargetStageDir(stageName) {
 
 function scaffoldStageEnvironmentFiles(appName, stageName) {
   const targetStageDir = getTargetStageDir(stageName);
-  copyRecursiveSync(templateStageDir, targetStageDir);
+  copyRecursiveSync(templateStageDir, targetStageDir, (_src, dest) => {
+    if (!dest.endsWith("_stage.tf")) {
+      return dest;
+    }
+    return dest.replace("_stage.tf", `_${stageName}.tf`);
+  });
   const resp = execSync(`find ${targetStageDir} -type f`);
   const tfFiles = resp
     .toString()

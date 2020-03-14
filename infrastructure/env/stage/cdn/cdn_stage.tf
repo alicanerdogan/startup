@@ -14,6 +14,7 @@ terraform {
 module "cdn" {
   source      = "../../../modules/cdn"
   environment = "[#_STAGE_NAME_#]"
+  app_name    = "[#_APP_NAME_#]"
 }
 
 output "s3_arn" {
