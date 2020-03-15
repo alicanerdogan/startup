@@ -144,11 +144,34 @@ cd "../../server"
 
 zip -q -r $BUILD_FILE . -x './.git/*' -x './node_modules/*'
 aws s3 cp $BUILD_FILE $BUILD_FILE_S3_PATH
-aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_staging --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}" --output text --no-paginate
+aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_${stageName} --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}" --output text --no-paginate
 `;
 
   const binRootDir = path.join(scriptPath, "..");
   const stageDeployScriptPath = path.join(binRootDir, `deploy_${stageName}`);
+  fs.writeFileSync(stageDeployScriptPath, deployScriptTemplate, {
+    mode: 0o764
+  });
+}
+
+function scaffoldClientDeployScript(stageName) {
+  const deployScriptTemplate = `#!/bin/bash
+BASEDIR=$(dirname "$0")
+cd $BASEDIR
+
+CDN_BUCKET_NAME=$(cd ../env/${stageName}/cdn && terraform output s3_id)
+BUILD_FILE_S3_PATH="s3://$CDN_BUCKET_NAME"
+
+cd "../../client/dist"
+
+aws s3 cp ./ $BUILD_FILE_S3_PATH --recursive
+`;
+
+  const binRootDir = path.join(scriptPath, "..");
+  const stageDeployScriptPath = path.join(
+    binRootDir,
+    `deploy_client_${stageName}`
+  );
   fs.writeFileSync(stageDeployScriptPath, deployScriptTemplate, {
     mode: 0o764
   });
@@ -166,6 +189,7 @@ aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deploymen
     updateGlobalTerraformFiles(appName);
     scaffoldBuildScript(stageName);
     scaffoldServerDeployScript(stageName);
+    scaffoldClientDeployScript(stageName);
     scaffoldStageEnvironmentFiles(appName, stageName);
   } catch (error) {
     console.error({ error });
