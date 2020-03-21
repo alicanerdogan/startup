@@ -149,3 +149,13 @@ output "cdn_hosted_zone_id" {
   value       = module.resources.cdn_hosted_zone_id
   description = "The hosted zone id of the cdn"
 }
+
+output "api_gateway_invoke_url" {
+  value       = module.resources.api_gateway_invoke_url
+  description = "API Gateway Invoke URL"
+}
+
+output "api_gateway_stage_invoke_url" {
+  value       = module.resources.api_gateway_stage_invoke_url
+  description = "API Gateway Stage Invoke URL"
+}
