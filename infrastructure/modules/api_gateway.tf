@@ -91,7 +91,7 @@ locals {
 resource "aws_api_gateway_method_settings" "settings" {
   depends_on  = [aws_api_gateway_stage.stage]
   rest_api_id = aws_api_gateway_rest_api.api.id
-  stage_name  = local.stage_name
+  stage_name  = var.api_gateway_stage_name
   method_path = "*/*"
 
   settings {
@@ -108,7 +108,7 @@ resource "aws_api_gateway_deployment" "deployment" {
 
 resource "aws_api_gateway_stage" "stage" {
   depends_on    = [aws_cloudwatch_log_group.log_group]
-  stage_name    = local.stage_name
+  stage_name    = var.api_gateway_stage_name
   rest_api_id   = aws_api_gateway_rest_api.api.id
   deployment_id = aws_api_gateway_deployment.deployment.id
 
@@ -131,7 +131,7 @@ resource "aws_api_gateway_stage" "stage" {
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
-  name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.api.id}/${local.stage_name}"
+  name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.api.id}/${var.api_gateway_stage_name}"
   retention_in_days = 7
 }
 
@@ -139,7 +139,10 @@ output "api_gateway_invoke_url" {
   value = aws_api_gateway_deployment.deployment.invoke_url
 }
 
-
 output "api_gateway_stage_invoke_url" {
   value = aws_api_gateway_stage.stage.invoke_url
+}
+
+output "api_gateway_stage_name" {
+  value = var.api_gateway_stage_name
 }

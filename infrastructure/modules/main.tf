@@ -89,3 +89,9 @@ variable "domain_certificate_arn" {
   description = "ARN of domain certificate"
   type        = string
 }
+
+variable "api_gateway_stage_name" {
+  description = "API Gateway Stage Name"
+  type        = string
+  default     = "stage"
+}
