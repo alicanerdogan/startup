@@ -3,6 +3,26 @@ variable "environment" {
   type        = string
 }
 
+variable "subdomain" {
+  description = "Subdomain for domain"
+  type        = string
+}
+
+variable "base_domain" {
+  description = "Base domain"
+  type        = string
+}
+
+variable "cdn_state_bucket" {
+  description = "The name of the S3 bucket for the cdn's remote state"
+  type        = string
+}
+
+variable "cdn_state_key" {
+  description = "The path for the cdn's remote state in S3"
+  type        = string
+}
+
 provider "aws" {
   region  = "eu-central-1"
   version = ">= 2.52.0"
@@ -13,6 +33,16 @@ locals {
   availability_zone_id_1 = "euc1-az1"
   # Availability zone for eu-central-1a
   availability_zone_id_2 = "euc1-az2"
+}
+
+data "terraform_remote_state" "cdn" {
+  backend = "s3"
+
+  config = {
+    bucket = var.cdn_state_bucket
+    key    = var.cdn_state_key
+    region = "eu-central-1"
+  }
 }
 
 resource "aws_vpc" "vpc" {
@@ -181,6 +211,22 @@ resource "aws_security_group" "outbound" {
 
   tags = {
     Name = "outbound_${var.environment}"
+  }
+}
+
+data "aws_route53_zone" "domain" {
+  name = "${var.base_domain}."
+}
+
+resource "aws_route53_record" "route_record" {
+  zone_id = data.aws_route53_zone.domain.zone_id
+  name    = "${var.subdomain}.${var.base_domain}"
+  type    = "A"
+
+  alias {
+    name                   = data.terraform_remote_state.cdn.outputs.cdn_domain_name
+    zone_id                = data.terraform_remote_state.cdn.outputs.cdn_hosted_zone_id
+    evaluate_target_health = false
   }
 }
 

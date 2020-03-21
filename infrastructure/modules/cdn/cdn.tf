@@ -8,6 +8,21 @@ variable "app_name" {
   type        = string
 }
 
+variable "subdomain" {
+  description = "Subdomain for domain"
+  type        = string
+}
+
+variable "base_domain" {
+  description = "Base domain"
+  type        = string
+}
+
+variable "domain_certificate_arn" {
+  description = "ARN of domain certificate"
+  type        = string
+}
+
 provider "aws" {
   region  = "eu-central-1"
   version = ">= 2.52.0"
@@ -76,8 +91,12 @@ resource "aws_cloudfront_distribution" "cdn" {
   is_ipv6_enabled     = true
   comment             = "Some comment"
   default_root_object = "index.html"
+  aliases             = ["${var.subdomain}.${var.base_domain}"]
 
-  aliases = []
+  viewer_certificate {
+    acm_certificate_arn = var.domain_certificate_arn
+    ssl_support_method  = "sni-only"
+  }
 
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
@@ -154,10 +173,6 @@ resource "aws_cloudfront_distribution" "cdn" {
 
   tags = {
     Environment = var.environment
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = true
   }
 }
 

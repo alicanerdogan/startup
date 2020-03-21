@@ -11,9 +11,23 @@ terraform {
   }
 }
 
+variable "subdomain" {
+  description = "Subdomain for domain"
+  type        = string
+}
+
+variable "base_domain" {
+  description = "Base domain"
+  type        = string
+}
+
 module "network" {
-  source      = "../../../modules/network"
-  environment = "[#_STAGE_NAME_#]"
+  source           = "../../../modules/network"
+  environment      = "[#_STAGE_NAME_#]"
+  cdn_state_bucket = "[#_APP_NAME_#]-terraform-state-store"
+  cdn_state_key    = "[#_STAGE_NAME_#]/cdn/terraform.tfstate"
+  base_domain      = var.base_domain
+  subdomain        = var.subdomain
 }
 
 output "public_subnet_id" {

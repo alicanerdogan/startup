@@ -102,8 +102,8 @@ function scaffoldBuildScript(stageName) {
 BASEDIR=$(dirname "$0")
 cd $BASEDIR
 
-(cd "${stageNetworkResourceDir}" && terraform init && terraform apply -auto-approve)
-(cd "${stageCDNResourceDir}" && terraform init && terraform apply -auto-approve)
+(cd "${stageCDNResourceDir}" && terraform init && terraform apply -var "domain_certificate_arn=$DOMAIN_CERTIFICATE_ARN" -var "base_domain=$BASE_DOMAIN" -var "subdomain=$SUBDOMAIN" -auto-approve)
+(cd "${stageNetworkResourceDir}" && terraform init && terraform apply -var "base_domain=$BASE_DOMAIN" -var "subdomain=$SUBDOMAIN" -auto-approve)
 (cd "${stageDBResourceDir}" && terraform init && terraform apply -var "db_password=$DB_PASSWORD" -var "db_username=$DB_USERNAME" -auto-approve)
 (cd "${stageServerResourceDir}" && terraform init && terraform apply -var "public_ssh_key=$PUBLIC_SSH_KEY" -auto-approve)
 

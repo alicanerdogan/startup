@@ -11,10 +11,28 @@ terraform {
   }
 }
 
+variable "domain_certificate_arn" {
+  description = "ARN of domain certificate"
+  type        = string
+}
+
+variable "subdomain" {
+  description = "Subdomain for domain"
+  type        = string
+}
+
+variable "base_domain" {
+  description = "Base domain"
+  type        = string
+}
+
 module "cdn" {
-  source      = "../../../modules/cdn"
-  environment = "[#_STAGE_NAME_#]"
-  app_name    = "[#_APP_NAME_#]"
+  source                 = "../../../modules/cdn"
+  environment            = "[#_STAGE_NAME_#]"
+  app_name               = "[#_APP_NAME_#]"
+  base_domain            = var.base_domain
+  subdomain              = var.subdomain
+  domain_certificate_arn = var.domain_certificate_arn
 }
 
 output "s3_arn" {
