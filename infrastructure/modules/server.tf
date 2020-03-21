@@ -1,73 +1,6 @@
-provider "aws" {
-  region  = "eu-central-1"
-  version = ">= 2.52.0"
-}
-
-
-variable "environment" {
-  description = "Target environment"
-  type        = string
-}
-
-variable "app_name" {
-  description = "App name"
-  type        = string
-}
-
-variable "bucket_name_postfix" {
-  description = "To avoid clashes"
-  type        = string
-  default     = ""
-}
-
-variable "iam_instance_profile" {
-  type    = string
-  default = ""
-}
-
-variable "instance_type" {
-  default = "t2.micro"
-  type    = string
-
-}
-
-variable "name" {
-  type = string
-}
-
-variable "public_ssh_key" {
-  type = string
-}
-
-variable "private_ip" {
-  default = ""
-  type    = string
-
-}
-
-variable "network_state_bucket" {
-  description = "The name of the S3 bucket for the network's remote state"
-  type        = string
-}
-
-variable "network_state_key" {
-  description = "The path for the network's remote state in S3"
-  type        = string
-}
-
 resource "aws_key_pair" "server_key_pair" {
   key_name   = "server_key_pair_${var.environment}"
   public_key = var.public_ssh_key
-}
-
-data "terraform_remote_state" "network" {
-  backend = "s3"
-
-  config = {
-    bucket = var.network_state_bucket
-    key    = var.network_state_key
-    region = "eu-central-1"
-  }
 }
 
 data "template_file" "user_data" {
@@ -83,13 +16,17 @@ resource "aws_iam_instance_profile" "iam_instance_profile" {
 }
 
 resource "aws_instance" "server" {
-  ami                    = "ami-0df0e7600ad0913a9"
-  iam_instance_profile   = aws_iam_instance_profile.iam_instance_profile.name
-  instance_type          = var.instance_type
-  key_name               = aws_key_pair.server_key_pair.key_name
-  private_ip             = var.private_ip
-  subnet_id              = data.terraform_remote_state.network.outputs.public_subnet_id
-  vpc_security_group_ids = data.terraform_remote_state.network.outputs.vpc_public_security_group_ids
+  ami                  = "ami-0df0e7600ad0913a9"
+  iam_instance_profile = aws_iam_instance_profile.iam_instance_profile.name
+  instance_type        = var.instance_type
+  key_name             = aws_key_pair.server_key_pair.key_name
+  private_ip           = var.private_ip
+  subnet_id            = aws_subnet.subnet_public.id
+  vpc_security_group_ids = [
+    aws_security_group.http.id,
+    aws_security_group.ssh.id,
+    aws_security_group.outbound.id
+  ]
 
   user_data = data.template_file.user_data.rendered
 

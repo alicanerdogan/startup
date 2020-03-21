@@ -82,35 +82,17 @@ function scaffoldBuildScript(stageName) {
   const stageRootDir = getTargetStageDir(stageName);
   const binRootDir = path.join(scriptPath, "..");
 
-  const stageNetworkResourceDir = path.relative(
-    binRootDir,
-    path.join(stageRootDir, "network")
-  );
-  const stageCDNResourceDir = path.relative(
-    binRootDir,
-    path.join(stageRootDir, "cdn")
-  );
-  const stageDBResourceDir = path.relative(
-    binRootDir,
-    path.join(stageRootDir, "db")
-  );
-  const stageServerResourceDir = path.relative(
-    binRootDir,
-    path.join(stageRootDir, "server")
-  );
+  const stageResourceDir = path.relative(binRootDir, stageRootDir);
   const buildScriptTemplate = `#!/bin/bash
 BASEDIR=$(dirname "$0")
 cd $BASEDIR
 
-(cd "${stageCDNResourceDir}" && terraform init && terraform apply -var "domain_certificate_arn=$DOMAIN_CERTIFICATE_ARN" -var "base_domain=$BASE_DOMAIN" -var "subdomain=$SUBDOMAIN" -auto-approve)
-(cd "${stageNetworkResourceDir}" && terraform init && terraform apply -var "base_domain=$BASE_DOMAIN" -var "subdomain=$SUBDOMAIN" -auto-approve)
-(cd "${stageDBResourceDir}" && terraform init && terraform apply -var "db_password=$DB_PASSWORD" -var "db_username=$DB_USERNAME" -auto-approve)
-(cd "${stageServerResourceDir}" && terraform init && terraform apply -var "public_ssh_key=$PUBLIC_SSH_KEY" -auto-approve)
+(cd "${stageResourceDir}" && terraform init && terraform apply -var "domain_certificate_arn=$DOMAIN_CERTIFICATE_ARN" -var "base_domain=$BASE_DOMAIN" -var "subdomain=$SUBDOMAIN"  -var "db_password=$DB_PASSWORD" -var "db_username=$DB_USERNAME"  -var "public_ssh_key=$PUBLIC_SSH_KEY" -auto-approve)
 
-PORT=$(cd "${stageNetworkResourceDir}" && terraform output server_port)
-DB=$(cd "${stageDBResourceDir}" && terraform output db_name)
-DB_PORT=$(cd "${stageDBResourceDir}" && terraform output db_port)
-DB_ADDRESS=$(cd "${stageDBResourceDir}" && terraform output db_address)
+PORT=$(cd "${stageResourceDir}" && terraform output server_port)
+DB=$(cd "${stageResourceDir}" && terraform output db_name)
+DB_PORT=$(cd "${stageResourceDir}" && terraform output db_port)
+DB_ADDRESS=$(cd "${stageResourceDir}" && terraform output db_address)
 
 cd "../../server"
 
@@ -135,8 +117,8 @@ cd $BASEDIR
 
 BUILD_REVISION=$(git rev-parse --short HEAD)
 BUILD_FILE="build_\${BUILD_REVISION}.zip"
-CODEDEPLOY_APP_NAME=$(cd ../env/${stageName}/server && terraform output app_name)
-DEPLOYMENT_BUCKET_NAME=$(cd ../env/${stageName}/server && terraform output deployment_bucket)
+CODEDEPLOY_APP_NAME=$(cd ../env/${stageName} && terraform output app_name)
+DEPLOYMENT_BUCKET_NAME=$(cd ../env/${stageName} && terraform output deployment_bucket)
 BUILD_FILE_S3_KEY="revisions/$BUILD_FILE"
 BUILD_FILE_S3_PATH="s3://$DEPLOYMENT_BUCKET_NAME/$BUILD_FILE_S3_KEY"
 
@@ -159,7 +141,7 @@ function scaffoldClientDeployScript(stageName) {
 BASEDIR=$(dirname "$0")
 cd $BASEDIR
 
-CDN_BUCKET_NAME=$(cd ../env/${stageName}/cdn && terraform output s3_id)
+CDN_BUCKET_NAME=$(cd ../env/${stageName} && terraform output s3_id)
 BUILD_FILE_S3_PATH="s3://$CDN_BUCKET_NAME"
 
 cd "../../client/dist"

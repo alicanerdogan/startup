@@ -1,33 +1,3 @@
-variable "environment" {
-  description = "Target environment"
-  type        = string
-}
-
-variable "app_name" {
-  description = "App name"
-  type        = string
-}
-
-variable "subdomain" {
-  description = "Subdomain for domain"
-  type        = string
-}
-
-variable "base_domain" {
-  description = "Base domain"
-  type        = string
-}
-
-variable "domain_certificate_arn" {
-  description = "ARN of domain certificate"
-  type        = string
-}
-
-provider "aws" {
-  region  = "eu-central-1"
-  version = ">= 2.52.0"
-}
-
 locals {
   s3_origin_id = "s3-origin-id-${var.environment}"
 }

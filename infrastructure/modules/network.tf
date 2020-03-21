@@ -1,48 +1,8 @@
-variable "environment" {
-  description = "Target environment"
-  type        = string
-}
-
-variable "subdomain" {
-  description = "Subdomain for domain"
-  type        = string
-}
-
-variable "base_domain" {
-  description = "Base domain"
-  type        = string
-}
-
-variable "cdn_state_bucket" {
-  description = "The name of the S3 bucket for the cdn's remote state"
-  type        = string
-}
-
-variable "cdn_state_key" {
-  description = "The path for the cdn's remote state in S3"
-  type        = string
-}
-
-provider "aws" {
-  region  = "eu-central-1"
-  version = ">= 2.52.0"
-}
-
 locals {
   # Availability zone for eu-central-1c
   availability_zone_id_1 = "euc1-az1"
   # Availability zone for eu-central-1a
   availability_zone_id_2 = "euc1-az2"
-}
-
-data "terraform_remote_state" "cdn" {
-  backend = "s3"
-
-  config = {
-    bucket = var.cdn_state_bucket
-    key    = var.cdn_state_key
-    region = "eu-central-1"
-  }
 }
 
 resource "aws_vpc" "vpc" {
@@ -178,6 +138,24 @@ resource "aws_security_group" "http" {
   }
 }
 
+resource "aws_security_group" "https" {
+  name        = "https"
+  description = "Allow outbound https requests"
+
+  vpc_id = aws_vpc.vpc.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "http_${var.environment}"
+  }
+}
+
 resource "aws_security_group" "ssh" {
   name        = "ssh"
   description = "Allow outbound ssh requests"
@@ -224,8 +202,8 @@ resource "aws_route53_record" "route_record" {
   type    = "A"
 
   alias {
-    name                   = data.terraform_remote_state.cdn.outputs.cdn_domain_name
-    zone_id                = data.terraform_remote_state.cdn.outputs.cdn_hosted_zone_id
+    name                   = aws_cloudfront_distribution.cdn.domain_name
+    zone_id                = aws_cloudfront_distribution.cdn.hosted_zone_id
     evaluate_target_health = false
   }
 }
@@ -238,6 +216,7 @@ output "public_subnet_id" {
 output "vpc_public_security_group_ids" {
   value = [
     aws_security_group.http.id,
+    aws_security_group.https.id,
     aws_security_group.ssh.id,
     aws_security_group.outbound.id
   ]
@@ -245,9 +224,7 @@ output "vpc_public_security_group_ids" {
 }
 
 output "vpc_db_security_group_ids" {
-  value = [
-    aws_security_group.internal_postgresql.id
-  ]
+  value       = [aws_security_group.internal_postgresql.id]
   description = "The vpc db security group ids"
 }
 
