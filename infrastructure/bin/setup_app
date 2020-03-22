@@ -1,0 +1,49 @@
+#!/usr/bin/node
+
+const readline = require("readline");
+const fs = require("fs");
+const path = require("path");
+const { execSync } = require("child_process");
+
+const promisifyRL = fn => {
+  return (...args) =>
+    new Promise(resolve => fn(...args, result => resolve(result)));
+};
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const askQuestion = promisifyRL(rl.question.bind(rl));
+
+const APP_NAME_PLACEHOLDER = "[#_APP_NAME_#]";
+const STAGE_NAME_PLACEHOLDER = "[#_STAGE_NAME_#]";
+
+const [, scriptPath] = process.argv;
+const rootDir = path.join(scriptPath, "..", "..");
+const globalDir = path.join(rootDir, "global");
+
+function updateGlobalTerraformFiles(appName) {
+  const resp = execSync(`find ${globalDir} -type f`);
+  const tfFiles = resp
+    .toString()
+    .trim()
+    .split("\n");
+  for (const tfFile of tfFiles) {
+    execSync(`sed -i 's/\\[#_APP_NAME_#\\]/${appName}/g' ${tfFile}`);
+  }
+}
+
+(async function() {
+  try {
+    const appName = await askQuestion(
+      "What is the name of your application?\n"
+    );
+
+    updateGlobalTerraformFiles(appName);
+  } catch (error) {
+    console.error({ error });
+  }
+  rl.close();
+})();

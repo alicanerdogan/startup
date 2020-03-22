@@ -43,7 +43,7 @@ module "resources" {
   source      = "../../modules"
   environment = "[#_STAGE_NAME_#]"
 
-  name           = "server-[#_STAGE_NAME_#]"
+  name           = "server-[#_APP_NAME_#]-[#_STAGE_NAME_#]"
   app_name       = "[#_APP_NAME_#]-[#_STAGE_NAME_#]"
   public_ssh_key = var.public_ssh_key
 
@@ -51,11 +51,12 @@ module "resources" {
   subdomain              = var.subdomain
   domain_certificate_arn = var.domain_certificate_arn
 
-  db_name           = "db[#_STAGE_NAME_#]"
-  identifier        = "db[#_STAGE_NAME_#]"
+  db_name           = "db${replace("[#_APP_NAME_#]", "-", "")}[#_STAGE_NAME_#]"
+  identifier        = "db${replace("[#_APP_NAME_#]", "-", "")}[#_STAGE_NAME_#]"
   apply_immediately = true
   username          = var.db_username
   password          = var.db_password
+  api_name          = "[#_APP_NAME_#]-[#_STAGE_NAME_#]-api"
 }
 
 output "server_private_ip" {

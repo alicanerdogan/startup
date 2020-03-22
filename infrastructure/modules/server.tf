@@ -1,5 +1,5 @@
 resource "aws_key_pair" "server_key_pair" {
-  key_name   = "server_key_pair_${var.environment}"
+  key_name   = "server_key_pair_${var.app_name}"
   public_key = var.public_ssh_key
 }
 
@@ -16,6 +16,7 @@ resource "aws_iam_instance_profile" "iam_instance_profile" {
 }
 
 resource "aws_instance" "server" {
+  depends_on           = [aws_codedeploy_deployment_group.deployment_group]
   ami                  = "ami-0df0e7600ad0913a9"
   iam_instance_profile = aws_iam_instance_profile.iam_instance_profile.name
   instance_type        = var.instance_type
@@ -132,7 +133,7 @@ resource "aws_codedeploy_app" "codedeploy" {
 
 resource "aws_codedeploy_deployment_group" "deployment_group" {
   app_name              = var.app_name
-  deployment_group_name = "deployment_group_${var.environment}"
+  deployment_group_name = "deployment_group_${var.app_name}"
   service_role_arn      = aws_iam_role.codedeploy_role.arn
 
   ec2_tag_set {

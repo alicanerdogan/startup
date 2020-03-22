@@ -3,7 +3,6 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const util = require("util");
 const { execSync } = require("child_process");
 
 const promisifyRL = fn => {
@@ -42,7 +41,6 @@ const [, scriptPath] = process.argv;
 const rootDir = path.join(scriptPath, "..", "..");
 const stageRootDir = path.join(rootDir, "env");
 const templateStageDir = path.join(stageRootDir, "stage");
-const globalDir = path.join(rootDir, "global");
 
 function getTargetStageDir(stageName) {
   return path.join(stageRootDir, stageName);
@@ -64,17 +62,6 @@ function scaffoldStageEnvironmentFiles(appName, stageName) {
   for (const tfFile of tfFiles) {
     execSync(`sed -i 's/\\[#_APP_NAME_#\\]/${appName}/g' ${tfFile}`);
     execSync(`sed -i 's/\\[#_STAGE_NAME_#\\]/${stageName}/g' ${tfFile}`);
-  }
-}
-
-function updateGlobalTerraformFiles(appName) {
-  const resp = execSync(`find ${globalDir} -type f`);
-  const tfFiles = resp
-    .toString()
-    .trim()
-    .split("\n");
-  for (const tfFile of tfFiles) {
-    execSync(`sed -i 's/\\[#_APP_NAME_#\\]/${appName}/g' ${tfFile}`);
   }
 }
 
@@ -110,7 +97,7 @@ echo "{
   fs.writeFileSync(stageBuildScriptPath, buildScriptTemplate, { mode: 0o764 });
 }
 
-function scaffoldServerDeployScript(stageName) {
+function scaffoldServerDeployScript(appName, stageName) {
   const deployScriptTemplate = `#!/bin/bash
 BASEDIR=$(dirname "$0")
 cd $BASEDIR
@@ -126,7 +113,7 @@ cd "../../server"
 
 zip -q -r $BUILD_FILE . -x './.git/*' -x './node_modules/*'
 aws s3 cp $BUILD_FILE $BUILD_FILE_S3_PATH
-aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_${stageName} --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}" --output text --no-paginate
+aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_${appName}-${stageName} --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}" --output text --no-paginate
 `;
 
   const binRootDir = path.join(scriptPath, "..");
@@ -168,9 +155,8 @@ aws s3 cp ./ $BUILD_FILE_S3_PATH --recursive
       "What is the name of your stage environment? e.g: dev, staging, production\n"
     );
 
-    updateGlobalTerraformFiles(appName);
     scaffoldBuildScript(stageName);
-    scaffoldServerDeployScript(stageName);
+    scaffoldServerDeployScript(appName, stageName);
     scaffoldClientDeployScript(stageName);
     scaffoldStageEnvironmentFiles(appName, stageName);
   } catch (error) {

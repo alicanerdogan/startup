@@ -3,7 +3,7 @@ resource "aws_api_gateway_account" "account" {
 }
 
 resource "aws_iam_role" "cloudwatch" {
-  name = "api_gateway_cloudwatch_global"
+  name = "${var.api_name}_gateway_cloudwatch_global"
 
   assume_role_policy = <<EOF
 {
@@ -23,7 +23,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "cloudwatch" {
-  name = "default"
+  name = "${var.api_name}_cloudwatch_policy"
   role = aws_iam_role.cloudwatch.id
 
   policy = <<EOF
@@ -51,7 +51,7 @@ EOF
 
 resource "aws_api_gateway_rest_api" "api" {
   depends_on  = [aws_api_gateway_account.account]
-  name        = "api-gateway"
+  name        = var.api_name
   description = "Proxy to handle requests to our API"
 }
 
@@ -84,10 +84,6 @@ resource "aws_api_gateway_integration" "integration" {
   }
 }
 
-locals {
-  stage_name = "stage"
-}
-
 resource "aws_api_gateway_method_settings" "settings" {
   depends_on  = [aws_api_gateway_stage.stage]
   rest_api_id = aws_api_gateway_rest_api.api.id
@@ -101,7 +97,7 @@ resource "aws_api_gateway_method_settings" "settings" {
 }
 
 resource "aws_api_gateway_deployment" "deployment" {
-  depends_on  = [aws_api_gateway_method.method]
+  depends_on  = [aws_api_gateway_integration.integration]
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = ""
 }

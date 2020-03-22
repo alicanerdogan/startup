@@ -95,3 +95,8 @@ variable "api_gateway_stage_name" {
   type        = string
   default     = "stage"
 }
+
+variable "api_name" {
+  description = "API Name"
+  type        = string
+}

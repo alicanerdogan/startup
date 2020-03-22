@@ -10,7 +10,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "vpc-${var.environment}"
+    Name = "vpc-${var.app_name}"
   }
 }
 
@@ -20,7 +20,7 @@ resource "aws_subnet" "subnet_public" {
   vpc_id               = aws_vpc.vpc.id
 
   tags = {
-    Name = "subnet_public_${var.environment}"
+    Name = "subnet_public_${var.app_name}"
   }
 }
 
@@ -30,7 +30,7 @@ resource "aws_subnet" "subnet_private_1" {
   vpc_id               = aws_vpc.vpc.id
 
   tags = {
-    Name = "subnet_private_1_${var.environment}"
+    Name = "subnet_private_1_${var.app_name}"
   }
 }
 
@@ -40,12 +40,12 @@ resource "aws_subnet" "subnet_private_2" {
   vpc_id               = aws_vpc.vpc.id
 
   tags = {
-    Name = "subnet_private_2_${var.environment}"
+    Name = "subnet_private_2_${var.app_name}"
   }
 }
 
 resource "aws_db_subnet_group" "private_db_subnet_group" {
-  name       = "private_db_subnet_group"
+  name       = "private_db_subnet_group_${var.app_name}"
   subnet_ids = [aws_subnet.subnet_private_1.id, aws_subnet.subnet_private_2.id]
 
   tags = {
@@ -57,7 +57,7 @@ resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Name = "internet_gateway_${var.environment}"
+    Name = "internet_gateway_${var.app_name}"
   }
 }
 
@@ -70,7 +70,7 @@ resource "aws_route_table" "route_table_public" {
   }
 
   tags = {
-    Name = "route_table_public_${var.environment}"
+    Name = "route_table_public_${var.app_name}"
   }
 }
 
@@ -85,7 +85,7 @@ resource "aws_route_table_association" "private_route_table_association" {
 }
 
 resource "aws_security_group" "internal_http" {
-  name        = "internal_http"
+  name        = "internal_http_${var.app_name}"
   description = "Allow internal http requests"
 
   vpc_id = aws_vpc.vpc.id
@@ -98,12 +98,12 @@ resource "aws_security_group" "internal_http" {
   }
 
   tags = {
-    Name = "internal_http_${var.environment}"
+    Name = "internal_http_${var.app_name}"
   }
 }
 
 resource "aws_security_group" "internal_postgresql" {
-  name        = "internal_postgresql"
+  name        = "internal_postgresql_${var.app_name}"
   description = "Allow internal postgresql requests"
 
   vpc_id = aws_vpc.vpc.id
@@ -116,12 +116,12 @@ resource "aws_security_group" "internal_postgresql" {
   }
 
   tags = {
-    Name = "internal_postgresql_${var.environment}"
+    Name = "internal_postgresql_${var.app_name}"
   }
 }
 
 resource "aws_security_group" "http" {
-  name        = "http"
+  name        = "http_${var.app_name}"
   description = "Allow outbound http requests"
 
   vpc_id = aws_vpc.vpc.id
@@ -134,12 +134,12 @@ resource "aws_security_group" "http" {
   }
 
   tags = {
-    Name = "http_${var.environment}"
+    Name = "http_${var.app_name}"
   }
 }
 
 resource "aws_security_group" "https" {
-  name        = "https"
+  name        = "https_${var.app_name}"
   description = "Allow outbound https requests"
 
   vpc_id = aws_vpc.vpc.id
@@ -152,12 +152,12 @@ resource "aws_security_group" "https" {
   }
 
   tags = {
-    Name = "http_${var.environment}"
+    Name = "http_${var.app_name}"
   }
 }
 
 resource "aws_security_group" "ssh" {
-  name        = "ssh"
+  name        = "ssh_${var.app_name}"
   description = "Allow outbound ssh requests"
 
   vpc_id = aws_vpc.vpc.id
@@ -170,12 +170,12 @@ resource "aws_security_group" "ssh" {
   }
 
   tags = {
-    Name = "ssh_${var.environment}"
+    Name = "ssh_${var.app_name}"
   }
 }
 
 resource "aws_security_group" "outbound" {
-  name        = "outbound"
+  name        = "outbound_${var.app_name}"
   description = "Allow all outbound requests"
 
   vpc_id = aws_vpc.vpc.id
@@ -188,7 +188,7 @@ resource "aws_security_group" "outbound" {
   }
 
   tags = {
-    Name = "outbound_${var.environment}"
+    Name = "outbound_${var.app_name}"
   }
 }
 
