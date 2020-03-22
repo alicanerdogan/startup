@@ -113,6 +113,7 @@ cd "../../server"
 
 zip -q -r $BUILD_FILE . -x './.git/*' -x './node_modules/*'
 aws s3 cp $BUILD_FILE $BUILD_FILE_S3_PATH
+rm -f $BUILD_FILE
 aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_${appName}-${stageName} --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}" --output text --no-paginate
 `;
 
