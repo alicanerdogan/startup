@@ -1,0 +1,60 @@
+name: Deploy
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install aws cli
+        run: |
+          curl -sS "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -q awscliv2.zip
+          sudo ./aws/install
+          rm -rf awscliv2.zip
+          aws --version
+
+      - name: Install Terraform
+        run: |
+          wget -q https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+          unzip -q terraform_0.12.24_linux_amd64.zip
+          sudo mv ./terraform /usr/local/bin
+          rm -rf terraform_0.12.24_linux_amd64.zip
+          terraform --version
+
+      - name: Deploy Infrastructure
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-central-1
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          PUBLIC_SSH_KEY: ${{ secrets.PUBLIC_SSH_KEY }}
+          DOMAIN_CERTIFICATE_ARN: "__INSERT_ARN__"
+          BASE_DOMAIN: "__INSERT_DOMAIN__"
+          SUBDOMAIN: "__INSERT_SUBDOMAIN__"
+        run: |
+          ./infrastructure/bin/build_dev
+
+      - name: Deploy Server
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-central-1
+          JWT_SECRET_TOKEN: ${{ secrets.JWT_SECRET_TOKEN }}
+        run: |
+          ./server/bin/build.sh
+          ./infrastructure/bin/deploy_dev
+
+      - name: Deploy Client
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-central-1
+        run: |
+          ./client/bin/build.sh
+          ./infrastructure/bin/deploy_client_dev
