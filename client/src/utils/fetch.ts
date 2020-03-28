@@ -18,7 +18,7 @@ export function fetchAuthorized(url: string, init: FetchInit = {}) {
   const headers = {
     ...(!init.rawBody && { "Content-Type": "application/json" }),
     ...(init.headers || {}),
-    Authorization: `Bearer ${jwt}`
+    Authorization: jwt || ""
   };
   const body = (init.body && JSON.stringify(init.body)) || init.rawBody;
   return fetch(url, { method: "GET", ...init, headers, body });

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { twStyled } from "utils/styles";
-import { createUser, createSession, getPublicResource } from "utils/api";
+import { createUser, createSession, getResource } from "utils/api";
 
 export interface RegisterProps {}
 
@@ -35,7 +35,7 @@ export const Register: React.FC<RegisterProps> = (props: RegisterProps) => {
             await createUser({ email, password });
             const { token } = await createSession({ email, password });
             localStorage.setItem("jwt", token);
-            await getPublicResource();
+            await getResource();
           }}
         >
           {"Register"}
