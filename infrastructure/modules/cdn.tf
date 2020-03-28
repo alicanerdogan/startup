@@ -16,6 +16,11 @@ resource "aws_s3_bucket" "s3" {
   versioning {
     enabled = true
   }
+
+  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }
 }
 
 resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
@@ -50,11 +55,14 @@ resource "aws_s3_bucket_policy" "example" {
 
 resource "aws_cloudfront_distribution" "cdn" {
   origin {
-    domain_name = aws_s3_bucket.s3.bucket_regional_domain_name
+    domain_name = aws_s3_bucket.s3.website_endpoint
     origin_id   = local.s3_origin_id
 
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity.cloudfront_access_identity_path
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+      origin_protocol_policy = "http-only"
     }
   }
 
@@ -97,8 +105,8 @@ resource "aws_cloudfront_distribution" "cdn" {
 
     viewer_protocol_policy = "allow-all"
     min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
+    default_ttl            = 300
+    max_ttl                = 300
   }
 
   # Cache behavior with precedence 0
@@ -145,6 +153,11 @@ output "s3_arn" {
 output "s3_bucket_regional_domain_name" {
   value       = aws_s3_bucket.s3.bucket_regional_domain_name
   description = "The Bucket Regional Domain Name of the S3 bucket"
+}
+
+output "s3_website_endpoint" {
+  value       = aws_s3_bucket.s3.website_endpoint
+  description = "The S3 website endpoint"
 }
 
 output "s3_id" {

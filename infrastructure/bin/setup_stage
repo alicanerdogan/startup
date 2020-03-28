@@ -134,7 +134,7 @@ BUILD_FILE_S3_PATH="s3://$CDN_BUCKET_NAME"
 
 cd "../../client/dist"
 
-aws s3 cp ./ $BUILD_FILE_S3_PATH --recursive
+aws s3 cp ./ $BUILD_FILE_S3_PATH --recursive --acl public-read
 `;
 
   const binRootDir = path.join(scriptPath, "..");
