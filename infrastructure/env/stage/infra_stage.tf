@@ -136,11 +136,6 @@ output "s3_id" {
   description = "The id of the S3 bucket"
 }
 
-output "s3_id" {
-  value       = module.resources.s3_id
-  description = "The id of the S3 bucket"
-}
-
 output "s3_website_endpoint" {
   value       = module.resources.s3_website_endpoint
   description = "The S3 website endpoint"
