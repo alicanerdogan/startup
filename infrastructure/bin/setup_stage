@@ -5,14 +5,14 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const promisifyRL = fn => {
+const promisifyRL = (fn) => {
   return (...args) =>
-    new Promise(resolve => fn(...args, result => resolve(result)));
+    new Promise((resolve) => fn(...args, (result) => resolve(result)));
 };
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 const askQuestion = promisifyRL(rl.question.bind(rl));
@@ -26,7 +26,7 @@ function copyRecursiveSync(src, dest, replaceFilename = (_src, dest) => dest) {
     return;
   }
   fs.mkdirSync(replaceFilename(src, dest), { recursive: true });
-  fs.readdirSync(src).forEach(function(childItemName) {
+  fs.readdirSync(src).forEach(function (childItemName) {
     copyRecursiveSync(
       path.join(src, childItemName),
       path.join(dest, childItemName),
@@ -55,10 +55,7 @@ function scaffoldStageEnvironmentFiles(appName, stageName) {
     return dest.replace("_stage.tf", `_${stageName}.tf`);
   });
   const resp = execSync(`find ${targetStageDir} -type f`);
-  const tfFiles = resp
-    .toString()
-    .trim()
-    .split("\n");
+  const tfFiles = resp.toString().trim().split("\n");
   for (const tfFile of tfFiles) {
     execSync(`sed -i 's/\\[#_APP_NAME_#\\]/${appName}/g' ${tfFile}`);
     execSync(`sed -i 's/\\[#_STAGE_NAME_#\\]/${stageName}/g' ${tfFile}`);
@@ -73,6 +70,8 @@ function scaffoldBuildScript(stageName) {
   const buildScriptTemplate = `#!/bin/bash
 BASEDIR=$(dirname "$0")
 cd $BASEDIR
+
+set -e
 
 (cd "${stageResourceDir}" && terraform init && terraform apply -var "domain_certificate_arn=$DOMAIN_CERTIFICATE_ARN" -var "base_domain=$BASE_DOMAIN" -var "subdomain=$SUBDOMAIN"  -var "db_password=$DB_PASSWORD" -var "db_username=$DB_USERNAME"  -var "public_ssh_key=$PUBLIC_SSH_KEY" -auto-approve)
 
@@ -114,13 +113,14 @@ cd "../../server"
 zip -q -r $BUILD_FILE . -x './.git/*' -x './node_modules/*'
 aws s3 cp $BUILD_FILE $BUILD_FILE_S3_PATH
 rm -f $BUILD_FILE
-aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_${appName}-${stageName} --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}" --output text --no-paginate
+DEPLOYMENT_ID=$(aws deploy create-deployment --application-name $CODEDEPLOY_APP_NAME --deployment-group-name deployment_group_${appName}-${stageName} --revision "{\\"revisionType\\":\\"S3\\",\\"s3Location\\":{\\"bucket\\":\\"$DEPLOYMENT_BUCKET_NAME\\",\\"key\\": \\"$BUILD_FILE_S3_KEY\\",\\"bundleType\\":\\"zip\\"}}" --output text --no-paginate)
+aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID
 `;
 
   const binRootDir = path.join(scriptPath, "..");
   const stageDeployScriptPath = path.join(binRootDir, `deploy_${stageName}`);
   fs.writeFileSync(stageDeployScriptPath, deployScriptTemplate, {
-    mode: 0o764
+    mode: 0o764,
   });
 }
 
@@ -143,11 +143,11 @@ aws s3 cp ./ $BUILD_FILE_S3_PATH --recursive --acl public-read
     `deploy_client_${stageName}`
   );
   fs.writeFileSync(stageDeployScriptPath, deployScriptTemplate, {
-    mode: 0o764
+    mode: 0o764,
   });
 }
 
-(async function() {
+(async function () {
   try {
     const appName = await askQuestion(
       "What is the name of your application?\n"

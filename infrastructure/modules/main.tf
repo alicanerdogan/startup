@@ -93,7 +93,7 @@ variable "domain_certificate_arn" {
 variable "api_gateway_stage_name" {
   description = "API Gateway Stage Name"
   type        = string
-  default     = "stage"
+  default     = "active_stage"
 }
 
 variable "api_name" {

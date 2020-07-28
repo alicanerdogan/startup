@@ -50,9 +50,10 @@ EOF
 
 
 resource "aws_api_gateway_rest_api" "api" {
-  depends_on  = [aws_api_gateway_account.account]
-  name        = var.api_name
-  description = "Proxy to handle requests to our API"
+  depends_on         = [aws_api_gateway_account.account]
+  name               = var.api_name
+  description        = "Proxy to handle requests to our API"
+  binary_media_types = ["multipart/form-data", "image/png", "image/jpeg"]
 }
 
 resource "aws_api_gateway_resource" "resource" {
@@ -85,7 +86,7 @@ resource "aws_api_gateway_integration" "integration" {
 }
 
 resource "aws_api_gateway_method_settings" "settings" {
-  depends_on  = [aws_api_gateway_stage.stage]
+  depends_on  = [aws_api_gateway_stage.active_stage]
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = var.api_gateway_stage_name
   method_path = "*/*"
@@ -96,17 +97,21 @@ resource "aws_api_gateway_method_settings" "settings" {
   }
 }
 
-resource "aws_api_gateway_deployment" "deployment" {
-  depends_on  = [aws_api_gateway_integration.integration]
+resource "aws_api_gateway_deployment" "stage_deployment" {
+  # This should also depend on the other components like aws_api_gateway_rest_api
+  # to trigger deployment whenever any of the things that result in a different
+  # behavior of the api gw. Otherwise, deployment will stay the same and the changes
+  # will not be active.
+  depends_on  = [aws_api_gateway_integration.integration, aws_api_gateway_rest_api.api]
   rest_api_id = aws_api_gateway_rest_api.api.id
   stage_name  = ""
 }
 
-resource "aws_api_gateway_stage" "stage" {
+resource "aws_api_gateway_stage" "active_stage" {
   depends_on    = [aws_cloudwatch_log_group.log_group]
   stage_name    = var.api_gateway_stage_name
   rest_api_id   = aws_api_gateway_rest_api.api.id
-  deployment_id = aws_api_gateway_deployment.deployment.id
+  deployment_id = aws_api_gateway_deployment.stage_deployment.id
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.log_group.arn
@@ -132,11 +137,11 @@ resource "aws_cloudwatch_log_group" "log_group" {
 }
 
 output "api_gateway_invoke_url" {
-  value = aws_api_gateway_deployment.deployment.invoke_url
+  value = aws_api_gateway_deployment.stage_deployment.invoke_url
 }
 
 output "api_gateway_stage_invoke_url" {
-  value = aws_api_gateway_stage.stage.invoke_url
+  value = aws_api_gateway_stage.active_stage.invoke_url
 }
 
 output "api_gateway_stage_name" {

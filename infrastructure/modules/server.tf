@@ -61,6 +61,31 @@ resource "aws_s3_bucket" "deployment_bucket" {
   bucket = "${var.app_name}${var.bucket_name_postfix}-deployment-${var.environment}"
 }
 
+resource "aws_iam_role_policy" "ec2_logs_policy" {
+  name = "ec2_logs_${var.app_name}"
+  role = aws_iam_role.ec2_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogStreams"
+    ],
+    "Resource": [
+      "*"
+    ]
+  }
+ ]
+}
+EOF
+}
+
 resource "aws_iam_role_policy" "s3_deployment_policy" {
   name = "${var.app_name}_deployment_s3_${var.environment}"
   role = aws_iam_role.ec2_role.id
