@@ -1,24 +1,25 @@
 import * as React from "react";
-import { twStyled } from "utils/styles";
+import styled from "styled-components";
+
 import { createUser, createSession, getResource } from "utils/api";
 
 export interface RegisterProps {}
 
-export const RegisterStyle = twStyled.div();
+export const RegisterStyle = styled.div``;
 
-export const Register: React.FC<RegisterProps> = (props: RegisterProps) => {
+export const Register: React.FC<RegisterProps> = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   return (
     <RegisterStyle>
-      <form onSubmit={ev => ev.preventDefault()}>
+      <form onSubmit={(ev) => ev.preventDefault()}>
         <div>
           <label htmlFor="email">Email</label>
           <input
             type="text"
             name="email"
             value={email}
-            onChange={ev => setEmail(ev.target.value)}
+            onChange={(ev) => setEmail(ev.target.value)}
           />
         </div>
         <div>
@@ -27,7 +28,7 @@ export const Register: React.FC<RegisterProps> = (props: RegisterProps) => {
             type="password"
             name="password"
             value={password}
-            onChange={ev => setPassword(ev.target.value)}
+            onChange={(ev) => setPassword(ev.target.value)}
           />
         </div>
         <button

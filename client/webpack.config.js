@@ -3,52 +3,36 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
-const { getGlobalStyles } = require("tailwind-in-js");
-const CleanCSS = require("clean-css");
-
-const globalStyle = `
-${getGlobalStyles()}
-* {
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-
-  -webkit-tap-highlight-color: transparent;
-}
-html {
-  max-height: 100%;
-}
-* {
-  font-family: "Roboto Condensed", sans-serif;
-}
-`;
-const minifiedGlobalStyle = new CleanCSS({ sourceMap: false }).minify(
-  globalStyle
-).styles;
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const API_HOSTNAME = "http://localhost:3000";
 
 const isProduction = process.argv.includes("--mode=production");
 
 const plugins = [
+  new MiniCssExtractPlugin({
+    filename: "[name].[contenthash].css",
+    chunkFilename: "[name].[contenthash].css",
+    ignoreOrder: true,
+  }),
   new HtmlWebpackPlugin({
     title: "Firestarter",
-    template: "./src/index.html",
+    template: "./src/index.html.erb",
     minify: isProduction,
-    globalStyle: minifiedGlobalStyle
+    fontUrl:
+      "https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700&display=swap",
   }),
   new ForkTsCheckerWebpackPlugin({
-    tsconfig: path.resolve(__dirname, "tsconfig.json"),
-    useTypescriptIncrementalApi: true,
-    checkSyntacticErrors: true,
+    typescript: {
+      configFile: path.resolve(__dirname, "tsconfig.json"),
+    },
     // Required to be async to force compilation to fail due to type checks
-    async: false
-  })
+    async: !isProduction,
+  }),
 ];
 
 if (!isProduction) {
-  console.log("ReactRefreshWebpackPlugin");
-  plugins.push(new ReactRefreshWebpackPlugin({ disableRefreshCheck: true }));
+  plugins.push(new ReactRefreshWebpackPlugin());
 }
 
 module.exports = {
@@ -56,7 +40,7 @@ module.exports = {
   output: {
     filename: isProduction ? "[name].[contenthash].js" : "[name].[hash].js",
     path: __dirname + "/dist",
-    publicPath: "/"
+    publicPath: "/",
   },
   devtool: isProduction ? "source-map" : "cheap-module-source-map",
   devServer: {
@@ -69,34 +53,51 @@ module.exports = {
     clientLogLevel: "none",
     proxy: {
       "/api": {
-        target: API_HOSTNAME
-      }
+        target: API_HOSTNAME,
+      },
     },
-    stats: "minimal"
+    stats: "minimal",
   },
   watchOptions: {
-    ignored: /node_modules/
+    ignored: /node_modules/,
   },
   resolve: {
     modules: ["node_modules", path.resolve(__dirname, "src")],
-    extensions: [".ts", ".tsx", ".js", ".json"]
+    extensions: [".ts", ".tsx", ".js", ".json"],
   },
   module: {
     rules: [
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              hmr: !isProduction,
+            },
+          },
+          {
+            loader: "css-loader",
+            options: {
+              sourceMap: false,
+            },
+          },
+        ],
+      },
       {
         type: "javascript/auto",
         test: /\.svg$/,
         use: [
           {
-            loader: "@svgr/webpack"
+            loader: "@svgr/webpack",
           },
           {
             loader: "file-loader",
             options: {
-              name: "[name].[hash].[ext]"
-            }
-          }
-        ]
+              name: "[name].[hash].[ext]",
+            },
+          },
+        ],
       },
       {
         type: "javascript/auto",
@@ -105,9 +106,9 @@ module.exports = {
         use: {
           loader: "file-loader",
           options: {
-            name: "[name].[hash].[ext]"
-          }
-        }
+            name: "[name].[hash].[ext]",
+          },
+        },
       },
       {
         test: /\.tsx?$/,
@@ -116,9 +117,9 @@ module.exports = {
           loader: "babel-loader",
           options: {
             envName: isProduction ? "production" : "development",
-            cacheDirectory: true
-          }
-        }
+            cacheDirectory: true,
+          },
+        },
       },
       {
         test: /\.jsx?$/,
@@ -127,11 +128,11 @@ module.exports = {
           loader: "babel-loader",
           options: {
             envName: isProduction ? "production" : "development",
-            cacheDirectory: true
-          }
-        }
-      }
-    ]
+            cacheDirectory: true,
+          },
+        },
+      },
+    ],
   },
   plugins,
   optimization: {
@@ -142,9 +143,9 @@ module.exports = {
         commons: {
           test: /[\\/]node_modules[\\/]/,
           name: "vendors",
-          chunks: "async"
-        }
-      }
-    }
-  }
+          chunks: "async",
+        },
+      },
+    },
+  },
 };

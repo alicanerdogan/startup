@@ -26,7 +26,12 @@
     "baseUrl": "src",
     "outDir": "./dist/",
     "strictPropertyInitialization": true,
-    "rootDir": "src"
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "lib": ["DOM", "ES2017"],
+    "paths": {
+      "@*": ["/*"]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src"]
 }
