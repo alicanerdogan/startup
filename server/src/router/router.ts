@@ -2,12 +2,12 @@ import {
   RequestHandler as ExpressRequestHandler,
   Request as ExpressRequest,
   Response as ExpressResponse,
-  NextFunction as ExpressNextFunction
+  NextFunction as ExpressNextFunction,
 } from "express";
 export {
   Request as ExpressRequest,
   Response as ExpressResponse,
-  NextFunction as ExpressNextFunction
+  NextFunction as ExpressNextFunction,
 } from "express";
 
 import { User } from "./../model/User";

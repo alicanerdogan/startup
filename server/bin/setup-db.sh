@@ -2,7 +2,7 @@
 
 DATABASE_CONTAINER_NAME="nails-db"
 DB_NAME="nails-db"
-DB_TEST_NAME="naild-db-test"
+DB_TEST_NAME="nails-db-test"
 DB_PASSWORD="postgres"
 DB_PORT="5400"
 

@@ -4,8 +4,8 @@ export interface UserPrimitive {
 }
 
 export interface User extends Omit<UserPrimitive, "password"> {
-  id: number;
-  password_hash: string;
+  id: string;
+  password_hash?: string;
   created_at: string;
   updated_at: string;
 }

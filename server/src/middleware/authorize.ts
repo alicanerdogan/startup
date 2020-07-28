@@ -2,14 +2,18 @@ import {
   AuthorizationMidddleware,
   RequestHandler,
   AuthorizedRequestHandler,
-  ExpressRequest
+  ExpressRequest,
 } from "../router/router";
 import { verifyToken, JWTPayload } from "../utils/token";
 import { getUser } from "../registry/UserRegistry";
 
 async function getAuthorizedPayload(req: ExpressRequest) {
   const token = req.headers.authorization;
-  return token && (await verifyToken(token));
+  try {
+    return token && (await verifyToken(token));
+  } catch (error) {
+    return undefined;
+  }
 }
 async function getUserFromRequest(jwtPayload: JWTPayload) {
   return await getUser(jwtPayload.id);

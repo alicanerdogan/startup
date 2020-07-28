@@ -1,17 +1,13 @@
 import express from "express";
 import bodyParser from "body-parser";
 import { apiRouter } from "./router/api";
+import { getConfig } from "./utils/config";
 
 export const app = express();
-let config = {
-  port: 3000
-};
-if (process.env.NODE_ENV === "production") {
-  config = require("./config.prod.json");
-}
+const config = getConfig();
 const port = config.port;
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "1mb" }));
 app.use("/api", apiRouter);
 
 // const STATIC_ASSET_DIR = path.join(__dirname, '..', 'static');
@@ -27,5 +23,5 @@ const server = app.listen(port, () =>
 );
 
 export async function closeServer() {
-  await new Promise(resolve => server.close(resolve)).then();
+  await new Promise((resolve) => server.close(resolve)).then();
 }

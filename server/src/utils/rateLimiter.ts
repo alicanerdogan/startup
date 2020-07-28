@@ -20,7 +20,7 @@ const rateLimiter = new RateLimiter.RateLimiterPostgres(
   }
 );
 
-export async function isUserAllowedToConsumeAPI(userId: number) {
+export async function isUserAllowedToConsumeAPI(userId: string) {
   try {
     await rateLimiter.consume(userId.toString(), 5);
     return true;
