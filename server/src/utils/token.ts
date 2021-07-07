@@ -7,7 +7,7 @@ export type JWTPayload = Pick<User, "email" | "id">;
 const JWT_OPTIONS: jwt.SignOptions = {
   algorithm: "HS512",
   expiresIn: "7 days",
-  issuer: "nailsapp"
+  issuer: "nailsapp",
 };
 
 export async function createToken(payload: JWTPayload): Promise<string> {

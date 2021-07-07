@@ -1,6 +1,6 @@
 import {
   AuthorizedRequestMiddleware,
-  AuthorizedRequestHandler
+  AuthorizedRequestHandler,
 } from "../router/router";
 import { isUserAllowedToConsumeAPI } from "../utils/rateLimiter";
 
