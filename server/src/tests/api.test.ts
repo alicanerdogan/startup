@@ -77,7 +77,7 @@ describe("APIs", () => {
     });
   });
 
-  describe("Resource", () => {
+  describe.skip("Resource", () => {
     it("should limit usage of a limited resource when the user is anonymous", async () => {
       await request(app).get("/api/public/resource").expect(200).then();
 
