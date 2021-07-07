@@ -1,6 +1,6 @@
 import { dbConn } from "../db";
 import bcrypt from "bcrypt";
-import { UserPayload, UserPrimitive, User } from "../model/User";
+import { UserPrimitive } from "../model/User";
 
 async function hashPassword(password: string) {
   const SALT_ROUNDS = 10;
@@ -20,82 +20,69 @@ export async function isPasswordCorrect(password: string, hash: string) {
   return await bcrypt.compare(password, hash);
 }
 
-export async function createUser(user: UserPrimitive): Promise<User> {
-  const hashedPassword = await hashPassword(user.password);
+export async function createUser(user: UserPrimitive) {
+  const passwordHash = await hashPassword(user.password);
+  return await dbConn.user.create({
+    data: {
+      email: user.email,
+      passwordHash,
+    },
 
-  const res = await new Promise<User>((resolve, reject) => {
-    dbConn("users")
-      .insert({ email: user.email, password_hash: hashedPassword }, [
-        "email",
-        "id",
-      ])
-      .then((data) => resolve(data[0] as User))
-      .catch(reject);
+    select: { id: true, email: true, createdAt: true, updatedAt: true },
   });
-
-  return res;
 }
 
 export async function createUserWithProvider(user: {
   email: string;
   provider: string;
-}): Promise<User> {
-  const res = await new Promise<User>((resolve, reject) => {
-    dbConn("users")
-      .insert({ email: user.email, provider: user.provider }, ["email", "id"])
-      .then((data) => resolve(data[0] as User))
-      .catch(reject);
+}) {
+  return await dbConn.user.create({
+    data: user,
+    select: { id: true, email: true, createdAt: true, updatedAt: true },
   });
-
-  return res;
 }
 
 export async function getUser(id: string) {
-  const res = await new Promise<User>((resolve) => {
-    dbConn<User>("users")
-      .select("*")
-      .where("id", id)
-      .first()
-      .then((data) => resolve(data));
+  return await dbConn.user.findUnique({
+    where: { id },
+    select: { id: true, email: true, createdAt: true, updatedAt: true },
   });
+}
 
-  return res;
+export async function getAllUserFields(id: string) {
+  return await dbConn.user.findUnique({
+    where: { id },
+  });
 }
 
 export async function getUserWithEmail(email: string) {
-  const res = await new Promise<User>((resolve) => {
-    dbConn<User>("users")
-      .select("*")
-      .where("email", email)
-      .first()
-      .then((data) => resolve(data));
+  return await dbConn.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      createdAt: true,
+      updatedAt: true,
+      passwordHash: true,
+    },
   });
-
-  return res;
 }
 
-export async function getUserWithResetToken(reset_token: string) {
-  const res = await new Promise<User & { reset_token_expiration_date: string }>(
-    (resolve) => {
-      dbConn("users")
-        .select("*")
-        .where("reset_token", reset_token)
-        .first()
-        .then((data) => resolve(data));
-    }
-  );
-
-  return res;
+export async function getUserWithResetToken(resetToken: string) {
+  return await dbConn.user.findUnique({
+    where: { resetToken },
+    select: {
+      id: true,
+      email: true,
+      createdAt: true,
+      updatedAt: true,
+      resetTokenExpirationDate: true,
+    },
+  });
 }
 
 export async function listUsers() {
-  const res = await new Promise((resolve) => {
-    dbConn<UserPayload>("users")
-      .select("email")
-      .then((data) => resolve(data));
-  });
-
-  return res;
+  return await dbConn.user.findMany({ select: { email: true } });
 }
 
 export async function setPasswordToken(
@@ -103,24 +90,16 @@ export async function setPasswordToken(
   resetToken: string | null,
   resetTokenExpirationDate: string | null
 ) {
-  await new Promise((resolve) => {
-    dbConn("users")
-      .where({ id })
-      .update({
-        reset_token: resetToken,
-        reset_token_expiration_date: resetTokenExpirationDate,
-      })
-      .then(resolve);
+  await dbConn.user.update({
+    where: { id },
+    data: { resetToken, resetTokenExpirationDate },
   });
 }
 
 export async function setPassword(id: string, password: string) {
-  await new Promise((resolve) => {
-    dbConn("users")
-      .where({ id })
-      .update({
-        password_hash: hashPassword(password),
-      })
-      .then(resolve);
+  const passwordHash = await hashPassword(password);
+  await dbConn.user.update({
+    where: { id },
+    data: { passwordHash },
   });
 }

@@ -3,11 +3,7 @@ export interface UserPrimitive {
   password: string;
 }
 
-export interface User extends Omit<UserPrimitive, "password"> {
-  id: string;
-  password_hash?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { User as UserType } from "@prisma/client";
+export type User = UserType;
 
 export interface UserPayload extends Pick<User, "email"> {}

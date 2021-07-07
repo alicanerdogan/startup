@@ -10,13 +10,13 @@ export const createSession: RequestHandler = async (req, res, _next) => {
       res.sendStatus(401);
       return;
     }
-    if (!user.password_hash) {
+    if (!user.passwordHash) {
       res.sendStatus(400);
       return;
     }
     const passwordCorrect = await UserRegistry.isPasswordCorrect(
       password,
-      user.password_hash
+      user.passwordHash
     );
     if (!passwordCorrect) {
       res.sendStatus(401);

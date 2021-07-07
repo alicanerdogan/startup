@@ -69,7 +69,7 @@ export const setNewPassword: RequestHandler = async (req, res, _next) => {
     }
 
     const user = await UserRegistry.getUserWithResetToken(reset_token);
-    if (!user) {
+    if (!user || !user.resetTokenExpirationDate) {
       throw new Error("Reset token is not found: " + reset_token);
     }
 
@@ -90,7 +90,7 @@ export const setNewPassword: RequestHandler = async (req, res, _next) => {
     }
 
     const expiredTime =
-      Date.now() - new Date(user.reset_token_expiration_date).getTime();
+      Date.now() - new Date(user.resetTokenExpirationDate).getTime();
 
     if (expiredTime > _1_DAY) {
       throw new Error("Expired reset token: " + reset_token);

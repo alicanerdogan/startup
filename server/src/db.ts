@@ -1,10 +1,9 @@
-import knex from "knex";
-import dbConfig from "./dbConfig.js";
+import { PrismaClient } from "@prisma/client";
 
-export const dbConn = knex(dbConfig);
+export const dbConn = new PrismaClient();
 
 export async function closeDBConnection() {
-  await dbConn.destroy();
+  await dbConn.$disconnect();
 }
 
 export async function resetDB() {
@@ -13,34 +12,36 @@ export async function resetDB() {
     throw new Error("Do not reset database on environments other than test");
   }
 
-  const query =
-    "SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema() AND table_catalog = ?";
+  throw new Error("This feature has not been implemented yet");
 
-  const bindings = [dbConn.client.database()];
+  // const query =
+  //   "SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema() AND table_catalog = ?";
 
-  const tables: string[] = await dbConn
-    .raw(query, bindings)
-    .then(results => results.rows.map((row: any) => row.table_name));
+  // const bindings = [dbConn.client.database()];
 
-  let tablesToBeDeleted = tables.filter(
-    tableName =>
-      !["knex_migrations", "knex_migrations_lock"].includes(tableName)
-  );
+  // const tables: string[] = await dbConn
+  //   .raw(query, bindings)
+  //   .then((results) => results.rows.map((row: any) => row.table_name));
 
-  while (tablesToBeDeleted.length > 0) {
-    const newTablesToBeDeleted: string[] = [];
-    await Promise.all(
-      tablesToBeDeleted.map(tableName =>
-        dbConn
-          .table(tableName)
-          .delete()
-          .then(undefined, () => {
-            //If the table is failed to be deleted beacuse of a foreign key,
-            // try to remove again once the dependency removed
-            newTablesToBeDeleted.push(tableName);
-          })
-      )
-    );
-    tablesToBeDeleted = newTablesToBeDeleted;
-  }
+  // let tablesToBeDeleted = tables.filter(
+  //   (tableName) =>
+  //     !["knex_migrations", "knex_migrations_lock"].includes(tableName)
+  // );
+
+  // while (tablesToBeDeleted.length > 0) {
+  //   const newTablesToBeDeleted: string[] = [];
+  //   await Promise.all(
+  //     tablesToBeDeleted.map((tableName) =>
+  //       dbConn
+  //         .table(tableName)
+  //         .delete()
+  //         .then(undefined, () => {
+  //           //If the table is failed to be deleted beacuse of a foreign key,
+  //           // try to remove again once the dependency removed
+  //           newTablesToBeDeleted.push(tableName);
+  //         })
+  //     )
+  //   );
+  //   tablesToBeDeleted = newTablesToBeDeleted;
+  // }
 }

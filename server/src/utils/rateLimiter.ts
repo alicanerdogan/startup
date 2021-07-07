@@ -1,28 +1,6 @@
-import * as RateLimiter from "rate-limiter-flexible";
-import { dbConn } from "../db";
-
-const rateLimiterOptions = {
-  storeClient: dbConn,
-  storeType: "knex",
-  tableName: "api_calls",
-  keyPrefix: "", // This can be used to differentiate the different apis
-  blockDuration: 10,
-  points: 10, // Number of points
-  duration: 60 // Per second(s)
-};
-
-const rateLimiter = new RateLimiter.RateLimiterPostgres(
-  rateLimiterOptions,
-  err => {
-    if (err) {
-      console.error(err);
-    }
-  }
-);
-
-export async function isUserAllowedToConsumeAPI(userId: string) {
+export async function isUserAllowedToConsumeAPI(_userId: string) {
   try {
-    await rateLimiter.consume(userId.toString(), 5);
+    // TODO: Add logic
     return true;
   } catch (error) {
     if (error instanceof Error) {
@@ -33,18 +11,9 @@ export async function isUserAllowedToConsumeAPI(userId: string) {
   }
 }
 
-const publicRateLimiter = new RateLimiter.RateLimiterPostgres(
-  { ...rateLimiterOptions, points: 5, keyPrefix: "ip_" },
-  err => {
-    if (err) {
-      console.error(err);
-    }
-  }
-);
-
-export async function isIPAllowedToConsumeAPI(ip: string) {
+export async function isIPAllowedToConsumeAPI(_ip: string) {
   try {
-    await publicRateLimiter.consume(ip, 5);
+    // TODO: Add logic
     return true;
   } catch (error) {
     if (error instanceof Error) {
