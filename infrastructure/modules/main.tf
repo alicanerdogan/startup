@@ -1,6 +1,5 @@
 provider "aws" {
-  region  = "eu-central-1"
-  version = ">= 2.52.0"
+  region = "eu-central-1"
 }
 
 variable "environment" {
